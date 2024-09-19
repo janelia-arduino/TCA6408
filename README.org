@@ -1,14 +1,6 @@
-#+EXPORT_FILE_NAME: ../README.md
-#+OPTIONS: toc:1 |:t ^:nil tags:nil
 #+TITLE: TCA6408
 #+AUTHOR: Peter Polidoro
 #+EMAIL: peter@polidoro.io
-
-# Place warning at the top of the exported file
-#+BEGIN_EXAMPLE
-<!-- This file is generated automatically from metadata -->
-<!-- File edits may be overwritten! -->
-#+END_EXAMPLE
 
 * Library Information
 - Name :: TCA6408
@@ -20,6 +12,7 @@
 
 ** Description
 
+Arduino interface library for the TI TCA6408 8-bit I2C I/O Expander.
 
 * Host Computer Setup
 
