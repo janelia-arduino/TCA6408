@@ -25,44 +25,97 @@ void TCA6408::setup(TwoWire & wire,
 #endif
 }
 
-uint8_t TCA6408::readInputs()
+uint8_t TCA6408::readRegister(RegisterAddress register_address)
 {
   if (wire_ptr_ == nullptr)
   {
     return 0;
   }
-  wire_ptr_->beginTransmission(device_address_);
-  wire_ptr_->write(0x0);
-  byte error = wire_ptr_->endTransmission();
-  if (error)
-  {
-    Serial.println("Error occurred when writing");
-    if (error == 5)
-      Serial.println("It was a timeout");
-  }
 
-  delay(100);
+  wire_ptr_->beginTransmission(device_address_);
+  wire_ptr_->write((uint8_t)register_address);
+  wire_ptr_->endTransmission();
 
 #if defined(WIRE_HAS_TIMEOUT)
   wire_ptr_->clearWireTimeoutFlag();
 #endif
-  byte len = wire_ptr_->requestFrom(device_address_, 1); // request 1 byte
-  if (len == 0)
-  {
-    Serial.println("Error occurred when reading");
-#if defined(WIRE_HAS_TIMEOUT)
-    if (wire_ptr_->getWireTimeoutFlag())
-      Serial.println("It was a timeout");
-#endif
-  }
+  wire_ptr_->requestFrom(device_address_, 1);
 
-  uint8_t inputs = wire_ptr_->read();
-  return inputs;
+  uint8_t read_byte = wire_ptr_->read();
+  return read_byte;
 }
 
-void TCA6408::setResetPin(pin_size_t reset_pin)
+void TCA6408::writeRegister(RegisterAddress register_address, uint8_t data)
+{
+  if (wire_ptr_ == nullptr)
+  {
+    return;
+  }
+
+  wire_ptr_->beginTransmission(device_address_);
+  wire_ptr_->write((uint8_t)register_address);
+  wire_ptr_->write(data);
+  wire_ptr_->endTransmission();
+}
+
+uint8_t TCA6408::readInputRegister()
+{
+  return readRegister(INPUT_PORT);
+}
+
+uint8_t TCA6408::readPolarityInversionRegister()
+{
+  return readRegister(POLARITY_INVERSION);
+}
+
+void TCA6408::writePolarityInversionRegister(uint8_t data)
+{
+  writeRegister(POLARITY_INVERSION, data);
+}
+
+void TCA6408::setAllPinsPolarityOriginal()
+{
+  writeRegister(POLARITY_INVERSION, 0x00);
+}
+
+void TCA6408::setAllPinsPolarityInverted()
+{
+  writeRegister(POLARITY_INVERSION, 0xFF);
+}
+
+uint8_t TCA6408::readConfigurationRegister()
+{
+  return readRegister(CONFIGURATION);
+}
+
+void TCA6408::writeConfigurationRegister(uint8_t data)
+{
+  writeRegister(CONFIGURATION, data);
+}
+
+void TCA6408::setAllPinsInput()
+{
+  writeRegister(CONFIGURATION, 0xFF);
+}
+
+void TCA6408::setAllPinsOutput()
+{
+  writeRegister(CONFIGURATION, 0x00);
+}
+
+void TCA6408::writeOutputRegister(uint8_t data)
+{
+  writeRegister(OUTPUT_PORT, data);
+}
+
+void TCA6408::setResetPin(uint8_t reset_pin)
 {
   reset_pin_ = reset_pin;
   pinMode(reset_pin, OUTPUT);
   digitalWrite(reset_pin, HIGH);
+}
+
+void TCA6408::attachInterrupt(uint8_t interrupt_pin, voidFuncPtr callback)
+{
+  ::attachInterrupt(digitalPinToInterrupt(interrupt_pin), callback, FALLING);
 }
