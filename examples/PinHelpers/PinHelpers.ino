@@ -1,9 +1,9 @@
 #include <TCA6408.h>
 
 #if !defined(ARDUINO_ARCH_RP2040)
-TwoWire & wire = Wire;
+TwoWire& wire = Wire;
 #else
-TwoWire & wire = Wire1;
+TwoWire& wire = Wire1;
 uint8_t SDA_PIN = 26;
 uint8_t SCL_PIN = 27;
 #endif
@@ -18,8 +18,7 @@ const uint16_t LOOP_DELAY = 1000;
 TCA6408 io_expander;
 bool output_high;
 
-void setup()
-{
+void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
 
 #if defined(ARDUINO_ARCH_RP2040)
@@ -36,8 +35,7 @@ void setup()
   output_high = false;
 }
 
-void loop()
-{
+void loop() {
   bool input_high = io_expander.readInputPin(INPUT_PIN);
   bool latched_high = io_expander.readOutputPin(OUTPUT_PIN);
 
@@ -51,13 +49,10 @@ void loop()
   Serial.print(" latch: ");
   Serial.println(latched_high);
 
-  if (output_high)
-  {
+  if (output_high) {
     io_expander.setPinLow(OUTPUT_PIN);
     output_high = false;
-  }
-  else
-  {
+  } else {
     io_expander.setPinHigh(OUTPUT_PIN);
     output_high = true;
   }

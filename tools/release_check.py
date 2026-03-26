@@ -29,6 +29,7 @@ def main() -> int:
 
     commands = [
         ["python", "tools/version_sync.py", "check"],
+        ["python", "tools/clang_format.py", "check"],
         ["make", "native-test"],
         [
             "python",

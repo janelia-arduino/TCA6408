@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.1
+
+This release aligns repository formatting and local workflow with the updated
+Streaming project tooling.
+
+Highlights:
+
+- adopt the shared =.clang-format= style used in the Streaming repository
+- add Pixi =format= and =check-format= tasks backed by
+  =tools/clang_format.py=
+- include formatting verification in the release-check workflow
+- reformat library, test, and example sources with the shared style
+
 ## 2.0.0
 
 This release hardens the library for repeatable bring-up, release validation,
