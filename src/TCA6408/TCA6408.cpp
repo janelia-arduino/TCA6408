@@ -11,6 +11,7 @@ TCA6408::TCA6408()
 {
   wire_ptr_ = nullptr;
   reset_pin_ = NO_PIN;
+  last_i2c_error_ = tca6408::I2cError::NotInitialized;
 }
 
 void TCA6408::setup(TwoWire & wire,
@@ -18,49 +19,30 @@ void TCA6408::setup(TwoWire & wire,
 {
   wire_ptr_ = &wire;
   device_address_ = device_address;
-
-  wire_ptr_->begin();
 #if defined(WIRE_HAS_TIMEOUT)
   wire_ptr_->setWireTimeout(3000 /* us */, true /* reset_on_timeout */);
 #endif
+  last_i2c_error_ = tca6408::I2cError::None;
 }
 
 uint8_t TCA6408::readRegister(RegisterAddress register_address)
 {
-  if (wire_ptr_ == nullptr)
-  {
-    return 0;
-  }
-
-  wire_ptr_->beginTransmission(device_address_);
-  wire_ptr_->write((uint8_t)register_address);
-  wire_ptr_->endTransmission();
-
-#if defined(WIRE_HAS_TIMEOUT)
-  wire_ptr_->clearWireTimeoutFlag();
-#endif
-  wire_ptr_->requestFrom(device_address_, 1);
-
-  uint8_t read_byte = wire_ptr_->read();
-  return read_byte;
+  return readRegisterResult(register_address).value;
 }
 
 void TCA6408::writeRegister(RegisterAddress register_address, uint8_t data)
 {
-  if (wire_ptr_ == nullptr)
-  {
-    return;
-  }
-
-  wire_ptr_->beginTransmission(device_address_);
-  wire_ptr_->write((uint8_t)register_address);
-  wire_ptr_->write(data);
-  wire_ptr_->endTransmission();
+  writeRegisterResult(register_address, data);
 }
 
 uint8_t TCA6408::readInputRegister()
 {
   return readRegister(INPUT_PORT);
+}
+
+uint8_t TCA6408::readOutputRegister()
+{
+  return readRegister(OUTPUT_PORT);
 }
 
 uint8_t TCA6408::readPolarityInversionRegister()
@@ -113,6 +95,18 @@ void TCA6408::setResetPin(uint8_t reset_pin)
   reset_pin_ = reset_pin;
   pinMode(reset_pin, OUTPUT);
   digitalWrite(reset_pin, HIGH);
+}
+
+void TCA6408::reset()
+{
+  if (reset_pin_ == NO_PIN)
+  {
+    return;
+  }
+
+  digitalWrite(reset_pin_, LOW);
+  delayMicroseconds(1);
+  digitalWrite(reset_pin_, HIGH);
 }
 
 void TCA6408::attachInterrupt(uint8_t interrupt_pin, voidFuncPtr callback)

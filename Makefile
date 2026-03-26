@@ -2,6 +2,11 @@
 clean:
 	rm -rf .pio
 
+.PHONY: native-test
+native-test:
+	g++ -std=c++17 -Wall -Wextra -pedantic -Itest/native/include -Isrc test/native/test_tca6408.cpp src/TCA6408/TCA6408.cpp -o /tmp/tca6408_native_test
+	/tmp/tca6408_native_test
+
 .PHONY: teensy-firmware
 teensy-firmware: clean
 	pio run -e teensy40

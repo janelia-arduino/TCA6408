@@ -1,10 +1,11 @@
+#+OPTIONS: toc:1 |:t ^:nil tags:nil
 #+TITLE: TCA6408
 #+AUTHOR: Peter Polidoro
 #+EMAIL: peter@polidoro.io
 
 * Library Information
 - Name :: TCA6408
-- Version :: 1.0.0
+- Version :: 2.0.0
 - License :: BSD
 - URL :: https://github.com/janelia-arduino/TCA6408
 - Author :: Peter Polidoro
@@ -12,114 +13,160 @@
 
 ** Description
 
-Arduino interface library for the TI TCA6408 8-bit I2C I/O Expander.
+Arduino interface library for the TI TCA6408 8-bit I2C I/O expander.
 
-* Host Computer Setup
+See [[./CHANGELOG.md][CHANGELOG.md]] for release notes and
+[[./docs/HARDWARE_VALIDATION.md][docs/HARDWARE_VALIDATION.md]] for bench
+validation status.
 
-** Download this repository
+* Quick Start
 
-[[https://github.com/janelia-arduino/TCA6408.git]]
+This library now keeps I2C ownership explicit: your sketch configures and
+starts the =TwoWire= bus, and =TCA6408= uses that already-configured bus for
+register access.
 
-#+BEGIN_SRC sh
-git clone https://github.com/janelia-arduino/TCA6408.git
+** Basic setup
+
+#+BEGIN_SRC cpp
+#include <TCA6408.h>
+
+TwoWire &wire = Wire;
+TCA6408 io_expander;
+
+void setup()
+{
+  wire.begin();
+  io_expander.setup(wire, TCA6408::DEVICE_ADDRESS_0);
+
+  io_expander.setAllPinsInput();
+  uint8_t inputs = io_expander.readInputRegister();
+}
 #+END_SRC
 
-** PlatformIO
+The chip exposes all eight valid addresses:
 
-*** Install PlatformIO Core
+- =DEVICE_ADDRESS_0= through =DEVICE_ADDRESS_7=
+- =0x20= through =0x27=
 
-[[https://docs.platformio.org/en/latest/core/installation/index.html]]
+** Typed I2C results
 
-#+BEGIN_SRC sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install platformio
-pio --version
+For code that needs communication status, prefer the typed result APIs:
+
+- =readRegisterResult(register_address)=
+- =writeRegisterResult(register_address, data)=
+- =getLastI2cError()=
+- =communicating()=
+
+Current =tca6408::I2cError= values are:
+
+- =None=
+- =NotInitialized=
+- =InvalidPin=
+- =DataTooLong=
+- =AddressNack=
+- =DataNack=
+- =OtherBusError=
+- =RequestFailed=
+- =ShortRead=
+
+The legacy helpers remain available for simple sketches:
+
+- =readRegister(register_address)=
+- =writeRegister(register_address, data)=
+
+Those wrappers still update =getLastI2cError()=, but they do not surface the
+error directly in their return type.
+
+** Reset handling
+
+If the optional reset pin is wired, configure it once and pulse it with
+=reset()= when needed:
+
+#+BEGIN_SRC cpp
+io_expander.setResetPin(5);
+io_expander.reset();
 #+END_SRC
 
-*** 99-platformio-udev.rules
+** Per-pin helpers
 
-Linux users have to install udev rules for PlatformIO supported boards/devices.
+The chip does not provide debounce, per-pin interrupt masking, edge selection,
+or output fault readback. It does provide simple port registers, and the library
+now exposes per-pin helpers for common masked updates:
 
-**** Download udev rules file to /etc/udev/rules.d
+- =readInputPin(pin)=
+- =clearInterrupt()=
+- =pinIsInput(pin)=
+- =setPinInput(pin)=
+- =setPinOutput(pin)=
+- =readOutputRegister()=
+- =readOutputPin(pin)=
+- =writeOutputPin(pin, value)=
+- =setPinHigh(pin)=
+- =setPinLow(pin)=
+- =pinPolarityInverted(pin)=
+- =setPinPolarityInverted(pin)=
+- =setPinPolarityOriginal(pin)=
 
-#+BEGIN_SRC sh
-curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/system/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules
-#+END_SRC
+Notes from the datasheet:
 
-**** Restart udev management tool
+- Reading the input port register clears =INT= for the reporting pin state.
+- The input port register reflects the actual pin logic level, even for pins
+  configured as outputs.
+- The output port register reads back the output latch value, not the physical
+  pin voltage.
 
-#+BEGIN_SRC sh
-sudo service udev restart
-#+END_SRC
+* Interrupt Notes
 
-**** Add user to groups
+The interrupt output indicates that an input changed, but the interrupt service
+routine should stay short. The recommended pattern is:
 
-#+BEGIN_SRC sh
-sudo usermod -a -G dialout $USER && sudo usermod -a -G plugdev $USER
-#+END_SRC
+- ISR sets a volatile flag.
+- Main loop reads the input register and clears application state.
 
-**** Remove modemmanager
+See [[./examples/InterruptRead/InterruptRead.ino][examples/InterruptRead/InterruptRead.ino]]
+for a minimal example.
 
-#+BEGIN_SRC sh
-sudo apt-get purge --auto-remove modemmanager
-#+END_SRC
+* Build and Examples
 
-**** After setting up rules and groups
+Representative examples:
 
-You will need to log out and log back in again (or reboot) for the user group changes to take effect.
+- [[./examples/PollingRead/PollingRead.ino][examples/PollingRead/PollingRead.ino]]
+- [[./examples/InterruptRead/InterruptRead.ino][examples/InterruptRead/InterruptRead.ino]]
+- [[./examples/PinHelpers/PinHelpers.ino][examples/PinHelpers/PinHelpers.ino]]
 
-After this file is installed, physically unplug and reconnect your board.
-
-*** Compile the firmware
-
-**** Gnu/Linux
-
-#+BEGIN_SRC sh
-make teensy-firmware
-make mega-firmware
-make uno-firmware
-#+END_SRC
-
-**** Other
-
-#+BEGIN_SRC sh
-pio run -e teensy40
-pio run -e mega
-pio run -e uno
-#+END_SRC
-
-*** Upload the firmware
-
-**** Gnu/Linux
+Preferred local workflow with Pixi:
 
 #+BEGIN_SRC sh
-make teensy-upload
-make mega-upload
-make uno-upload
+pixi install
+pixi run pio-version
+pixi run test
+pixi run build examples/PollingRead pico
+pixi run build examples/InterruptRead pico
+pixi run build examples/PinHelpers pico
+pixi run release-check
 #+END_SRC
 
-**** Other
+Pixi keeps the =pio= CLI and its Python runtime local to the repository. The
+=build=, =upload=, =flash=, and =rebuild= tasks select examples without editing
+=platformio.ini=.
+
+Useful commands:
 
 #+BEGIN_SRC sh
-pio run -e teensy40 -t upload
-pio run -e mega -t upload
-pio run -e uno -t upload
+pixi run ports
+pixi run build examples/PollingRead teensy40
+pixi run upload examples/PollingRead pico /dev/ttyACM0
+pixi run monitor /dev/ttyACM0 115200
+pixi run set-version -- 2.0.0
 #+END_SRC
 
-*** Serial Terminal Monitor
-
-**** Gnu/Linux
+Equivalent direct commands without Pixi:
 
 #+BEGIN_SRC sh
-make monitor
+make native-test
+python3 tools/version_sync.py check
+python3 tools/pio_task.py build --example examples/PollingRead --env pico
+python3 tools/pio_task.py build --example examples/InterruptRead --env pico
+python3 tools/pio_task.py build --example examples/PinHelpers --env pico
+python3 tools/pio_task.py upload --example examples/PollingRead --env pico --port /dev/ttyACM0
 #+END_SRC
-
-**** Other
-
-#+BEGIN_SRC sh
-pio device monitor
-#+END_SRC
-
-
-

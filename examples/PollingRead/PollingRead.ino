@@ -15,7 +15,7 @@ const uint32_t SERIAL_BAUD_RATE = 115200;
 const uint16_t LOOP_DELAY = 2000;
 
 // Instantiate TCA6408
-TCA6408 tca6408;
+TCA6408 io_expander;
 bool pins_inverted;
 
 void setup()
@@ -26,26 +26,29 @@ void setup()
   wire.setSDA(SDA_PIN);
   wire.setSCL(SCL_PIN);
 #endif
+  wire.begin();
 
-  tca6408.setup(wire, DEVICE_ADDRESS);
-  tca6408.setResetPin(RESET_PIN);
+  io_expander.setup(wire, DEVICE_ADDRESS);
+  io_expander.setResetPin(RESET_PIN);
 
   pins_inverted = false;
 }
 
 void loop()
 {
-  uint8_t input_register = tca6408.readInputRegister();
+  uint8_t input_register = io_expander.readInputRegister();
   Serial.print("input_register: 0b");
   Serial.print(input_register, BIN);
   Serial.print(", ");
   Serial.println(input_register);
+  Serial.print("last_i2c_error: ");
+  Serial.println((uint8_t)io_expander.getLastI2cError());
 
-  uint8_t polarity_inversion_register = tca6408.readPolarityInversionRegister();
+  uint8_t polarity_inversion_register = io_expander.readPolarityInversionRegister();
   Serial.print("polarity_inversion_register: 0b");
   Serial.println(polarity_inversion_register, BIN);
 
-  uint8_t configuration_register = tca6408.readConfigurationRegister();
+  uint8_t configuration_register = io_expander.readConfigurationRegister();
   Serial.print("configuration_register: 0b");
   Serial.println(configuration_register, BIN);
 
@@ -53,13 +56,13 @@ void loop()
   {
     Serial.println("all pins polarity were inverted now switching");
     pins_inverted = false;
-    tca6408.setAllPinsPolarityOriginal();
+    io_expander.setAllPinsPolarityOriginal();
   }
   else
   {
     Serial.println("all pins polarity were original now switching");
     pins_inverted = true;
-    tca6408.setAllPinsPolarityInverted();
+    io_expander.setAllPinsPolarityInverted();
   }
 
   Serial.println("-------------------------------------");

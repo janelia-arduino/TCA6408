@@ -16,16 +16,12 @@ const uint32_t SERIAL_BAUD_RATE = 115200;
 const uint16_t LOOP_DELAY = 2000;
 
 // Instantiate TCA6408
-TCA6408 tca6408;
+TCA6408 io_expander;
+volatile bool input_changed;
 
 void interruptCallback()
 {
-  uint8_t input_register = tca6408.readInputRegister();
-  Serial.print("input_register: 0b");
-  Serial.print(input_register, BIN);
-  Serial.print(", ");
-  Serial.println(input_register);
-  Serial.println("-------------------------------------");
+  input_changed = true;
 }
 
 void setup()
@@ -36,13 +32,30 @@ void setup()
   wire.setSDA(SDA_PIN);
   wire.setSCL(SCL_PIN);
 #endif
+  wire.begin();
 
-  tca6408.setup(wire, DEVICE_ADDRESS);
-  tca6408.setResetPin(RESET_PIN);
+  io_expander.setup(wire, DEVICE_ADDRESS);
+  io_expander.setResetPin(RESET_PIN);
+  input_changed = false;
 
-  tca6408.attachInterrupt(INTERRUPT_PIN, interruptCallback);
+  io_expander.attachInterrupt(INTERRUPT_PIN, interruptCallback);
 }
 
 void loop()
 {
+  if (input_changed)
+  {
+    noInterrupts();
+    input_changed = false;
+    interrupts();
+
+    uint8_t input_register = io_expander.readInputRegister();
+    Serial.print("input_register: 0b");
+    Serial.print(input_register, BIN);
+    Serial.print(", ");
+    Serial.println(input_register);
+    Serial.print("last_i2c_error: ");
+    Serial.println((uint8_t)io_expander.getLastI2cError());
+    Serial.println("-------------------------------------");
+  }
 }
