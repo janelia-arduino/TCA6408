@@ -1,9 +1,9 @@
 #include <TCA6408.h>
 
 #if !defined(ARDUINO_ARCH_RP2040)
-TwoWire& wire = Wire;
+TwoWire &wire = Wire;
 #else
-TwoWire& wire = Wire1;
+TwoWire &wire = Wire1;
 uint8_t SDA_PIN = 26;
 uint8_t SCL_PIN = 27;
 #endif
@@ -19,9 +19,7 @@ const uint16_t LOOP_DELAY = 2000;
 TCA6408 io_expander;
 volatile bool input_changed;
 
-void interruptCallback() {
-  input_changed = true;
-}
+void interruptCallback() { input_changed = true; }
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);

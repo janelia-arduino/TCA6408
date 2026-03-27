@@ -12,7 +12,7 @@ TCA6408::TCA6408() {
   last_i2c_error_ = tca6408::I2cError::NotInitialized;
 }
 
-void TCA6408::setup(TwoWire& wire, DeviceAddress device_address) {
+void TCA6408::setup(TwoWire &wire, DeviceAddress device_address) {
   wire_ptr_ = &wire;
   device_address_ = device_address;
 #if defined(WIRE_HAS_TIMEOUT)
@@ -29,13 +29,9 @@ void TCA6408::writeRegister(RegisterAddress register_address, uint8_t data) {
   writeRegisterResult(register_address, data);
 }
 
-uint8_t TCA6408::readInputRegister() {
-  return readRegister(INPUT_PORT);
-}
+uint8_t TCA6408::readInputRegister() { return readRegister(INPUT_PORT); }
 
-uint8_t TCA6408::readOutputRegister() {
-  return readRegister(OUTPUT_PORT);
-}
+uint8_t TCA6408::readOutputRegister() { return readRegister(OUTPUT_PORT); }
 
 uint8_t TCA6408::readPolarityInversionRegister() {
   return readRegister(POLARITY_INVERSION);
@@ -61,13 +57,9 @@ void TCA6408::writeConfigurationRegister(uint8_t data) {
   writeRegister(CONFIGURATION, data);
 }
 
-void TCA6408::setAllPinsInput() {
-  writeRegister(CONFIGURATION, 0xFF);
-}
+void TCA6408::setAllPinsInput() { writeRegister(CONFIGURATION, 0xFF); }
 
-void TCA6408::setAllPinsOutput() {
-  writeRegister(CONFIGURATION, 0x00);
-}
+void TCA6408::setAllPinsOutput() { writeRegister(CONFIGURATION, 0x00); }
 
 void TCA6408::writeOutputRegister(uint8_t data) {
   writeRegister(OUTPUT_PORT, data);

@@ -45,12 +45,10 @@ inline void delayMicroseconds(unsigned int delay_us) {
   g_last_delay_microseconds = delay_us;
 }
 
-inline int digitalPinToInterrupt(int pin) {
-  return pin;
-}
+inline int digitalPinToInterrupt(int pin) { return pin; }
 
-inline void
-attachInterrupt(uint8_t interrupt_number, void (*callback)(void), int mode) {
+inline void attachInterrupt(uint8_t interrupt_number, void (*callback)(void),
+                            int mode) {
   g_last_interrupt_pin = interrupt_number;
   g_last_interrupt_callback = callback;
   g_last_interrupt_mode = (uint8_t)mode;

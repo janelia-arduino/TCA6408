@@ -22,9 +22,7 @@ public:
   uint8_t request_from_result{1};
   size_t rx_index{0};
 
-  void begin() {
-    begin_called = true;
-  }
+  void begin() { begin_called = true; }
 
   void setWireTimeout(unsigned long timeout, bool reset_on_timeout) {
     timeout_configured = true;
@@ -32,9 +30,7 @@ public:
     timeout_reset_on_flag = reset_on_timeout;
   }
 
-  void clearWireTimeoutFlag() {
-    timeout_flag_cleared = true;
-  }
+  void clearWireTimeoutFlag() { timeout_flag_cleared = true; }
 
   void beginTransmission(uint8_t address) {
     transmission_address = address;
@@ -46,9 +42,7 @@ public:
     return 1;
   }
 
-  uint8_t endTransmission() {
-    return end_transmission_result;
-  }
+  uint8_t endTransmission() { return end_transmission_result; }
 
   uint8_t requestFrom(uint8_t address, uint8_t quantity) {
     request_address = address;
@@ -57,9 +51,7 @@ public:
     return request_from_result;
   }
 
-  int available() {
-    return (int)(rx_buffer.size() - rx_index);
-  }
+  int available() { return (int)(rx_buffer.size() - rx_index); }
 
   int read() {
     if (rx_index >= rx_buffer.size()) {

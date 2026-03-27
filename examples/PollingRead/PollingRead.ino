@@ -1,9 +1,9 @@
 #include <TCA6408.h>
 
 #if !defined(ARDUINO_ARCH_RP2040)
-TwoWire& wire = Wire;
+TwoWire &wire = Wire;
 #else
-TwoWire& wire = Wire1;
+TwoWire &wire = Wire1;
 uint8_t SDA_PIN = 26;
 uint8_t SCL_PIN = 27;
 #endif
@@ -43,7 +43,7 @@ void loop() {
   Serial.println((uint8_t)io_expander.getLastI2cError());
 
   uint8_t polarity_inversion_register =
-    io_expander.readPolarityInversionRegister();
+      io_expander.readPolarityInversionRegister();
   Serial.print("polarity_inversion_register: 0b");
   Serial.println(polarity_inversion_register, BIN);
 

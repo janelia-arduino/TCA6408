@@ -8,8 +8,9 @@ Streaming project tooling.
 Highlights:
 
 - adopt the shared =.clang-format= style used in the Streaming repository
-- add Pixi =format= and =check-format= tasks backed by
-  =tools/clang_format.py=
+- add repo-wide formatting tasks backed by =tools/clang_format_all.py=
+- format embedded C-family source blocks in tracked Org and Markdown files
+- cover embedded-block formatting with =test/test_clang_format_all.py=
 - include formatting verification in the release-check workflow
 - reformat library, test, and example sources with the shared style
 

@@ -27,19 +27,15 @@ template <typename T> struct Result {
   T value{};
   I2cError error{I2cError::None};
 
-  constexpr bool ok() const {
-    return error == I2cError::None;
-  }
+  constexpr bool ok() const { return error == I2cError::None; }
 };
 
 template <> struct Result<void> {
   I2cError error{I2cError::None};
 
-  constexpr bool ok() const {
-    return error == I2cError::None;
-  }
+  constexpr bool ok() const { return error == I2cError::None; }
 };
-}
+} // namespace tca6408
 
 class TCA6408 {
 public:
@@ -59,10 +55,8 @@ public:
 
   // The caller owns I2C peripheral configuration and should call wire.begin()
   // before setup().
-  void setup(TwoWire& wire, DeviceAddress device_address);
-  bool initialized() const {
-    return wire_ptr_ != nullptr;
-  }
+  void setup(TwoWire &wire, DeviceAddress device_address);
+  bool initialized() const { return wire_ptr_ != nullptr; }
 
   enum RegisterAddress {
     INPUT_PORT = 0,
@@ -103,7 +97,7 @@ public:
 #endif
     uint8_t bytes_requested = 1;
     uint8_t bytes_received =
-      wire_ptr_->requestFrom((uint8_t)device_address_, bytes_requested);
+        wire_ptr_->requestFrom((uint8_t)device_address_, bytes_requested);
     if (bytes_received != bytes_requested) {
       result.error = tca6408::I2cError::RequestFailed;
       last_i2c_error_ = result.error;
@@ -139,26 +133,18 @@ public:
   }
   uint8_t readRegister(RegisterAddress register_address);
   void writeRegister(RegisterAddress register_address, uint8_t data);
-  tca6408::I2cError getLastI2cError() const {
-    return last_i2c_error_;
-  }
-  bool communicating() {
-    return readRegisterResult(INPUT_PORT).ok();
-  }
+  tca6408::I2cError getLastI2cError() const { return last_i2c_error_; }
+  bool communicating() { return readRegisterResult(INPUT_PORT).ok(); }
 
   uint8_t readInputRegister();
   tca6408::Result<bool> readInputPinResult(uint8_t pin) {
     return readRegisterBitResult(INPUT_PORT, pin);
   }
-  bool readInputPin(uint8_t pin) {
-    return readInputPinResult(pin).value;
-  }
+  bool readInputPin(uint8_t pin) { return readInputPinResult(pin).value; }
   tca6408::Result<uint8_t> clearInterruptResult() {
     return readRegisterResult(INPUT_PORT);
   }
-  uint8_t clearInterrupt() {
-    return clearInterruptResult().value;
-  }
+  uint8_t clearInterrupt() { return clearInterruptResult().value; }
 
   // If a bit in the polarity inversion register is set to 1 the corresponding
   // port pin is inverted polarity
@@ -192,21 +178,15 @@ public:
   tca6408::Result<bool> readPinInputModeResult(uint8_t pin) {
     return readRegisterBitResult(CONFIGURATION, pin);
   }
-  bool pinIsInput(uint8_t pin) {
-    return readPinInputModeResult(pin).value;
-  }
+  bool pinIsInput(uint8_t pin) { return readPinInputModeResult(pin).value; }
   tca6408::Result<void> setPinInputResult(uint8_t pin) {
     return updateRegisterBitResult(CONFIGURATION, pin, true);
   }
-  void setPinInput(uint8_t pin) {
-    setPinInputResult(pin);
-  }
+  void setPinInput(uint8_t pin) { setPinInputResult(pin); }
   tca6408::Result<void> setPinOutputResult(uint8_t pin) {
     return updateRegisterBitResult(CONFIGURATION, pin, false);
   }
-  void setPinOutput(uint8_t pin) {
-    setPinOutputResult(pin);
-  }
+  void setPinOutput(uint8_t pin) { setPinOutputResult(pin); }
   void setAllPinsInput();
   void setAllPinsOutput();
 
@@ -214,9 +194,7 @@ public:
   tca6408::Result<bool> readOutputPinResult(uint8_t pin) {
     return readRegisterBitResult(OUTPUT_PORT, pin);
   }
-  bool readOutputPin(uint8_t pin) {
-    return readOutputPinResult(pin).value;
-  }
+  bool readOutputPin(uint8_t pin) { return readOutputPinResult(pin).value; }
   void writeOutputRegister(uint8_t data);
   tca6408::Result<void> writeOutputPinResult(uint8_t pin, bool value) {
     return updateRegisterBitResult(OUTPUT_PORT, pin, value);
@@ -224,12 +202,8 @@ public:
   void writeOutputPin(uint8_t pin, bool value) {
     writeOutputPinResult(pin, value);
   }
-  void setPinHigh(uint8_t pin) {
-    writeOutputPin(pin, true);
-  }
-  void setPinLow(uint8_t pin) {
-    writeOutputPin(pin, false);
-  }
+  void setPinHigh(uint8_t pin) { writeOutputPin(pin, true); }
+  void setPinLow(uint8_t pin) { writeOutputPin(pin, false); }
 
   void setResetPin(uint8_t reset_pin);
   void reset();
@@ -237,17 +211,13 @@ public:
   void attachInterrupt(uint8_t interrupt_pin, voidFuncPtr callback);
 
 private:
-  TwoWire* wire_ptr_;
+  TwoWire *wire_ptr_;
   DeviceAddress device_address_;
   uint8_t reset_pin_;
   tca6408::I2cError last_i2c_error_;
   const static uint8_t NO_PIN = 255;
-  bool pinValid_(uint8_t pin) const {
-    return pin < PIN_COUNT;
-  }
-  uint8_t bitMaskForPin_(uint8_t pin) const {
-    return (uint8_t)(1u << pin);
-  }
+  bool pinValid_(uint8_t pin) const { return pin < PIN_COUNT; }
+  uint8_t bitMaskForPin_(uint8_t pin) const { return (uint8_t)(1u << pin); }
   tca6408::Result<bool> readRegisterBitResult(RegisterAddress register_address,
                                               uint8_t pin) {
     tca6408::Result<bool> result;
@@ -266,8 +236,9 @@ private:
     result.value = (read_result.value & bitMaskForPin_(pin)) != 0;
     return result;
   }
-  tca6408::Result<void> updateRegisterBitResult(
-    RegisterAddress register_address, uint8_t pin, bool value) {
+  tca6408::Result<void>
+  updateRegisterBitResult(RegisterAddress register_address, uint8_t pin,
+                          bool value) {
     tca6408::Result<void> result;
     if (!pinValid_(pin)) {
       result.error = tca6408::I2cError::InvalidPin;
@@ -294,17 +265,17 @@ private:
   tca6408::I2cError
   endTransmissionToError_(uint8_t end_transmission_result) const {
     switch (end_transmission_result) {
-      case 0:
-        return tca6408::I2cError::None;
-      case 1:
-        return tca6408::I2cError::DataTooLong;
-      case 2:
-        return tca6408::I2cError::AddressNack;
-      case 3:
-        return tca6408::I2cError::DataNack;
-      case 4:
-      default:
-        return tca6408::I2cError::OtherBusError;
+    case 0:
+      return tca6408::I2cError::None;
+    case 1:
+      return tca6408::I2cError::DataTooLong;
+    case 2:
+      return tca6408::I2cError::AddressNack;
+    case 3:
+      return tca6408::I2cError::DataNack;
+    case 4:
+    default:
+      return tca6408::I2cError::OtherBusError;
     }
   }
 };

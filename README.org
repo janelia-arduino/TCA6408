@@ -5,7 +5,7 @@
 
 * Library Information
 - Name :: TCA6408
-- Version :: 2.0.1
+- Version :: 2.0.2
 - License :: BSD
 - URL :: https://github.com/janelia-arduino/TCA6408
 - Author :: Peter Polidoro
@@ -33,8 +33,7 @@ register access.
 TwoWire &wire = Wire;
 TCA6408 io_expander;
 
-void setup()
-{
+void setup() {
   wire.begin();
   io_expander.setup(wire, TCA6408::DEVICE_ADDRESS_0);
 
@@ -139,7 +138,7 @@ Preferred local workflow with Pixi:
 #+BEGIN_SRC sh
 pixi install
 pixi run pio-version
-pixi run check-format
+pixi run format-check
 pixi run test
 pixi run build examples/PollingRead pico
 pixi run build examples/InterruptRead pico
@@ -155,7 +154,7 @@ Useful commands:
 
 #+BEGIN_SRC sh
 pixi run ports
-pixi run format
+pixi run format-all
 pixi run build examples/PollingRead teensy40
 pixi run upload examples/PollingRead pico /dev/ttyACM0
 pixi run monitor /dev/ttyACM0 115200
@@ -166,7 +165,7 @@ Equivalent direct commands without Pixi:
 
 #+BEGIN_SRC sh
 make native-test
-python3 tools/clang_format.py check
+python3 tools/clang_format_all.py --check
 python3 tools/version_sync.py check
 python3 tools/pio_task.py build --example examples/PollingRead --env pico
 python3 tools/pio_task.py build --example examples/InterruptRead --env pico
@@ -180,7 +179,7 @@ Before tagging a release:
 
 - Update =CHANGELOG.md=.
 - Sync version metadata with =python3 tools/version_sync.py set X.Y.Z=.
-- Run =pixi run check-format=.
+- Run =pixi run format-check=.
 - Run =make native-test=.
 - Run =pixi run release-check=.
 - Commit, tag, and push the release.

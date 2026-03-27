@@ -4,7 +4,7 @@
 
 namespace {
 void dummyCallback() {}
-}
+} // namespace
 
 int main() {
   static_assert(TCA6408::DEVICE_ADDRESS_7 == 0x27,
